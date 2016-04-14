@@ -44,7 +44,7 @@ public class MidoDebugTool extends JFrame{
 		setResizable(false);
 		setTitle("Mido Debug Tool");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 555, 327);
+		setBounds(100, 100, 593, 392);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -90,6 +90,11 @@ public class MidoDebugTool extends JFrame{
 		lblSelectEnvironment.setBounds(199, 21, 125, 16);
 		panel.add(lblSelectEnvironment);
 		
+		JButton btnGetServerInfo = new JButton("Get Server Information");
+		
+		btnGetServerInfo.setBounds(184, 279, 195, 39);
+		panel.add(btnGetServerInfo);
+		
 		
 		
 		
@@ -127,8 +132,8 @@ public class MidoDebugTool extends JFrame{
 				else
 					temp.environment = temp.DEMO;
 				
-				String auth_token = temp.login("mt1@yopmail.com", "qwerty");
-				temp.getService("");
+				temp.login("mt7@yopmail.com", "qwerty");
+//				temp.getService("");
 				
 				
 				
@@ -140,27 +145,41 @@ public class MidoDebugTool extends JFrame{
 		
 		btnCloseDraw.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				closeMidoDraw();
+				resources temp = new resources();
+				if (rdbtnNewRadioButton.isSelected()==true)
+					temp.environment = temp.STAGING;
+				else
+					temp.environment = temp.DEMO;
+				
+				temp.closeMidoDraw(txtWinningNumbers.getText().trim());
 			}
 		});
 		
+		
+		
+		
+		
+		
+		// GET SERVER INFORMATION
+		
+		btnGetServerInfo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				resources temp = new resources();
+				if (rdbtnNewRadioButton.isSelected()==true)
+					temp.environment = temp.STAGING;
+				else
+					temp.environment = temp.DEMO;
+				temp.getService();
+			}
+		});
 	}
 	
-	public void closeMidoDraw(){
-//		JOptionPane.showMessageDialog(null, "OK great, let's close this popup");
-		
-//		String[] a = temp.login("mt5@yopmail.com", "qwerty");
-//				
-//		if(a[0].equals("false"))
-//			temp.showErrorMessage("ERROR", "Can't login at this time.\nYour account: " + "mt5@yopmail.com");
-//		else{
-//			
-//		
-//		}
-		resources temp = new resources();
-		temp.environment = "Staging";
-		String b = temp.getService("Bearer MTQ2MDUzNjYwNDQxOTpiMTM2Y2Y0YzAzZWI1NmRlOGU4MDJhOWFiZWVhMmRiNjU3NGU4MDRkMTA3YWE2MmEyODBlN2ExNmY0ZTNmMDY2OlVTRVJfTE9HSU46Om10NUB5b3BtYWlsLmNvbTo6X186Ol9fOjoxMTUuNzkuNTUuMTc3OjoyODU0YWRmNy05OWM5LTQyNTEtOWU2Yy0xNGJiOTRkYWZlNDQ6YzI0ODQ0YzU1NjdkMjU5ZWRmODBmMWJmYzQyNDk0YmZjYmFkN2Y3Zjc0NjYwNTJhMDRkYTQxNDI3ZjE4OWQ0ODZjMTk5NzVmYzAwMDQ3NDcyNDQ0MWM3ZTg1ZmFhNjRkMmE4MzI2ODhiMmViNjNmYjVjNzYxOTA1YzUyMWFhMjg=");
-//		String b = temp.login("mt7@yopmail.com", "qwerty");
-		System.out.println(b);
-	}
+	
+	
+	
+	
+	
+	
+	
+	
 }
