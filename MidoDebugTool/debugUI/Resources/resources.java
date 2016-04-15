@@ -35,34 +35,21 @@ public class resources {
 	}
 	
 
-	public void closeMidoDraw(String winning_numbers){
+	public boolean closeMidoDraw(String winning_numbers){
 
 		String temp[] = winning_numbers.split(" ");
 		if (temp.length != 6){
 			this.showErrorMessage("Invalid winning numbers", 
 					"Your winning numbers: " + winning_numbers + "is invalid!" +
 					"\nAn example winning numbers: 01 02 03 04 05 06.");
-			return;
+			return false;
 		}
 		
 		
 		
-		String authToken = null;
-		if (Variable.authentication_token == null){
+		String authToken = checkAuthenticationToken();
 		
-			String response = this.login(TEST_USERNAME, TEST_PASSWORD);
-			if (response == null)
-				return;
-			
-			
-			JSONObject obj = new JSONObject(response);
-	
-			authToken = obj.getString("authenticationInfo");
-			Variable.authentication_token = authToken;
-		}
-		else 
-			authToken = Variable.authentication_token;
-
+		
 		
 		String parameters = "{\""
 				+ "winningNumbers\":\"" + winning_numbers
@@ -71,9 +58,28 @@ public class resources {
 		String response = sendPost("/games/mido-million/draws/current", authToken, parameters);
 		if (response == null){
 			this.showErrorMessage("ERROR", "Cannot close or complete Mido Millions draw at this time.\nPlease try again later.");
-			return;
+			return false;
+		}
+		return true;
+		
+	}
+	
+	public boolean getCurrentDrawStatus(){
+		String authToken = checkAuthenticationToken();
+		
+		String response = sendGet("/games/mido-million/draws/current", authToken);
+		if (response == null){
+			this.showErrorMessage("ERROR", "Cannot close or complete Mido Millions draw at this time.\nPlease try again later.");
+			return false;
 		}
 		
+		JSONObject obj = new JSONObject(response);
+
+//		authToken = obj.getBigInteger(arg0)
+		
+		
+		
+		return false;
 	}
 	
 	public String login(String username, String password){
@@ -94,26 +100,7 @@ public class resources {
 	
 	public void getService(){
 		
-
-		String authToken = null;
-		if (Variable.authentication_token == null){
-			String response = this.login(TEST_USERNAME, TEST_PASSWORD);
-			if (response == null) 
-				return;
-			
-			
-			JSONObject obj = new JSONObject(response);
-	
-			authToken = obj.getString("authenticationInfo");
-			Variable.authentication_token = authToken;
-
-		}
-		else
-			authToken = Variable.authentication_token;
-		
-
-		
-		
+		String authToken = checkAuthenticationToken();
 		
 		String response = sendGet("/service", authToken);
 		if (response == null){
@@ -138,6 +125,39 @@ public class resources {
 		private methods
 	*/
 
+	private String checkAuthenticationToken(){
+		String authToken = null;
+		
+		if (environment.equals(STAGING) && Variable.authentication_token_staging == null){
+			String response = this.login(TEST_USERNAME, TEST_PASSWORD);
+			if (response == null)
+				return null;
+			
+			JSONObject obj = new JSONObject(response);
+
+			authToken = obj.getString("authenticationInfo");
+			Variable.authentication_token_staging = authToken;
+			
+		} else if (environment.equals(DEMO) && Variable.authentication_token_demo == null){ 
+			String response = this.login(TEST_USERNAME, TEST_PASSWORD);
+			if (response == null)
+				return null;
+			
+			JSONObject obj = new JSONObject(response);
+
+			authToken = obj.getString("authenticationInfo");
+			Variable.authentication_token_demo = authToken;
+		}
+		else{
+			if (environment.equals(STAGING))
+				return Variable.authentication_token_staging;
+			else
+				return Variable.authentication_token_demo;
+		}
+		return authToken;
+	}
+	
+	
 	
 	private String sendGet(String uri, String authToken){
 		

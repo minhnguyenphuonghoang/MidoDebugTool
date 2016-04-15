@@ -44,7 +44,7 @@ public class MidoDebugTool extends JFrame{
 		setResizable(false);
 		setTitle("Mido Debug Tool");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 593, 392);
+		setBounds(100, 100, 514, 416);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -56,44 +56,50 @@ public class MidoDebugTool extends JFrame{
 		panel.setLayout(null);
 		
 		JButton btnCloseDraw = new JButton("Close/Complete Mido Millions Draw");
-		btnCloseDraw.setBounds(38, 110, 247, 46);
+		btnCloseDraw.setBounds(25, 109, 247, 46);
 		
 		panel.add(btnCloseDraw);
 		
 		txtWinningNumbers = new JTextField();
 		txtWinningNumbers.setHorizontalAlignment(SwingConstants.CENTER);
 		txtWinningNumbers.setText("01 02 03 04 05 06");
-		txtWinningNumbers.setBounds(315, 108, 145, 49);
+		txtWinningNumbers.setBounds(302, 107, 145, 49);
 		panel.add(txtWinningNumbers);
 		txtWinningNumbers.setColumns(10);
 		
-		JLabel lblNewLabel = new JLabel("Mido Millions Draw Status");
-		lblNewLabel.setBounds(199, 198, 202, 16);
-		panel.add(lblNewLabel);
-		
 		JButton btnGetMidoStatus = new JButton("Get Mido Millions Draw Status");
 		
-		btnGetMidoStatus.setBounds(160, 228, 241, 39);
+		btnGetMidoStatus.setBounds(128, 226, 241, 39);
 		panel.add(btnGetMidoStatus);
 		
 		JRadioButton rdbtnNewRadioButton = new JRadioButton("Staging");
-		rdbtnNewRadioButton.setBounds(164, 49, 141, 23);
+		rdbtnNewRadioButton.setBounds(128, 49, 141, 23);
 		rdbtnNewRadioButton.setSelected(true);
 		
 		panel.add(rdbtnNewRadioButton);
 		
 		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("Demo");
-		rdbtnNewRadioButton_1.setBounds(286, 49, 141, 23);
+		rdbtnNewRadioButton_1.setBounds(250, 49, 141, 23);
 		panel.add(rdbtnNewRadioButton_1);
 		
 		JLabel lblSelectEnvironment = new JLabel("Select environment");
-		lblSelectEnvironment.setBounds(199, 21, 125, 16);
+		lblSelectEnvironment.setBounds(163, 21, 125, 16);
 		panel.add(lblSelectEnvironment);
 		
 		JButton btnGetServerInfo = new JButton("Get Server Information");
 		
-		btnGetServerInfo.setBounds(184, 279, 195, 39);
+		btnGetServerInfo.setBounds(149, 321, 195, 39);
 		panel.add(btnGetServerInfo);
+		
+		JLabel lblNewLabel_1 = new JLabel("Close/Complete Status: UNKNOWN");
+		lblNewLabel_1.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel_1.setBounds(7, 155, 491, 39);
+		panel.add(lblNewLabel_1);
+		
+		JLabel lblNewLabel_2 = new JLabel("Current Mido draw status: UNKNOWN");
+		lblNewLabel_2.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel_2.setBounds(6, 264, 492, 32);
+		panel.add(lblNewLabel_2);
 		
 		
 		
@@ -131,10 +137,12 @@ public class MidoDebugTool extends JFrame{
 					temp.environment = temp.STAGING;
 				else
 					temp.environment = temp.DEMO;
-				
-				temp.login("mt7@yopmail.com", "qwerty");
-//				temp.getService("");
-				
+
+//				temp.get
+//				if (result == true)
+//					lblNewLabel_1.setText("Close/Complete Status: PASS");
+//				else
+//					lblNewLabel_1.setText("Close/Complete Status: FAILED - 404 or 505");
 				
 				
 			}
@@ -151,7 +159,11 @@ public class MidoDebugTool extends JFrame{
 				else
 					temp.environment = temp.DEMO;
 				
-				temp.closeMidoDraw(txtWinningNumbers.getText().trim());
+				Boolean result = temp.closeMidoDraw(txtWinningNumbers.getText().trim());
+				if (result == true)
+					lblNewLabel_1.setText("Close/Complete Status: PASS");
+				else
+					lblNewLabel_1.setText("Close/Complete Status: FAILED - 404 or 505");
 			}
 		});
 		
@@ -173,13 +185,4 @@ public class MidoDebugTool extends JFrame{
 			}
 		});
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }
