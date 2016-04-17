@@ -7,10 +7,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import org.json.*;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Random;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import Resources.Variable;
 
 
@@ -34,7 +40,92 @@ public class resources {
 		JOptionPane.showMessageDialog(null, errorMessage, title, JOptionPane.ERROR_MESSAGE);
 	}
 	
+	
+	public boolean inviteToGroup(String invitee, String message){
+		if (invitee == null || invitee.equals("")){
+			showErrorMessage("ERROR", "Invitee is empty");
+			return false;
+		}
+		
+		message = message.replace("\n", "\\n");
+		
+		String authToken = checkAuthenticationToken();
+		if (authToken==null)
+			return false;
+		
+		// create new group
+		
+		String result = createNewGroup(authToken);
+		if (result==null)
+			return false;
+		
+		// send group invitation
+		return inviteMemberToGroup(invitee, authToken, result, message);
+	}
+	
 
+	public boolean giftTicketsToSomeone(String receiver, Integer numberOfTickets, Boolean isWinning, String message){
+		if (receiver == null || receiver.equals("")){
+			return false;
+		} 
+		
+		String authToken = checkAuthenticationToken();
+		if (authToken==null)
+			return false;
+		String currentDrawID = getCurrentDrawStatus();
+		if (currentDrawID==null)
+			return false;
+		String[] lines = currentDrawID.split("\n");
+		currentDrawID = lines[1];
+		currentDrawID = currentDrawID.replace("DrawID: ", "");
+		
+		
+		double subTotalAmount = numberOfTickets;
+		double serviceFeeAmount = 0;
+		if (numberOfTickets < 8) 
+			serviceFeeAmount = numberOfTickets * 0.5 + 1;
+		else
+			serviceFeeAmount = numberOfTickets * 0.5;
+		double totalAmount = subTotalAmount + serviceFeeAmount;
+		String preParameters = "{\"order\":{"
+								+ "\"subTotalAmount\":" + subTotalAmount 
+								+ ",\"serviceFeeAmount\":\"" + serviceFeeAmount
+								+ "\",\"totalAmount\":\"" + totalAmount
+								+ "\",\"salesTaxAmount\":0,\"description\":\"Order to buy tickets.\","
+								+ "\"tickets\": [";
+		
+		String endParameters = "]},\"midoWallet\":{\"autoLoadAmount\":0,\"autoLoadTriggerAmount\":5,\"enableAutoLoad\":\"false\","
+								+ "\"loadAmount\":" + totalAmount
+								+ "},\"creditCard\":{\"paymentName\":\"VISA-1111\"}}";
+		
+		String parameters = "";
+		message = message.replace("\n", "\\n");
+		if (isWinning==true)
+			parameters = getGiftTicketJson(currentDrawID, "1 6 7 8 9 6", receiver, message);
+		else
+			parameters = getGiftTicketJson(currentDrawID, "5 6 7 8 9 7", receiver, message);
+		
+		numberOfTickets -= 1;
+
+		for (int i=0; i<numberOfTickets; i++){
+			String aTicket = randomTicket();
+			parameters += "," + getGiftTicketJson(currentDrawID, aTicket, receiver, message);
+		}
+		System.out.println(parameters);
+		parameters = preParameters + parameters + endParameters;
+		System.out.println(parameters);
+		String response = sendPost("/orders", authToken, parameters);
+		if (response == null){
+			this.showErrorMessage("ERROR", "Cannot send a gift at this time.\nPlease try again later.");
+			return false;
+		}
+		return true;
+		
+	}
+
+	
+	
+	
 	public boolean closeMidoDraw(String winning_numbers){
 
 		String temp[] = winning_numbers.split(" ");
@@ -64,22 +155,34 @@ public class resources {
 		
 	}
 	
-	public boolean getCurrentDrawStatus(){
+	public String getCurrentDrawStatus(){
 		String authToken = checkAuthenticationToken();
 		
-		String response = sendGet("/games/mido-million/draws/current", authToken);
+		String response = sendGet("/draws", authToken);
 		if (response == null){
-			this.showErrorMessage("ERROR", "Cannot close or complete Mido Millions draw at this time.\nPlease try again later.");
-			return false;
+			this.showErrorMessage("ERROR", "Cannot get current Mido Millions draw information .\nPlease try again later.");
+			return null;
 		}
 		
-		JSONObject obj = new JSONObject(response);
+		JSONArray arr = new JSONArray(response);
+		JSONObject obj = null;
+		for (int i=0; i<arr.length(); i++){
+			if (arr.isNull(i))
+				continue;
+			obj = arr.getJSONObject(i);
 
-//		authToken = obj.getBigInteger(arg0)
-		
-		
-		
-		return false;
+			if (obj.getString("gameName").equals("Mido Millions")){
+				if (obj.getString("state").equals("CURRENT_DRAW") || obj.getString("state").equals("CURRENT_PENDING_DRAW")){
+					return "GameID: " + obj.getInt("gameId")
+					+ "\nDrawID: " + obj.getString("drawId")
+					+ "\nState: " + obj.getString("state")
+					+ "\nGameDrawID: " + obj.getString("drawDate")
+					+ "\nDrawDate: " + obj.getString("drawDate")
+					+ "\nExpectedCloseDate: " + obj.getString("expectedCloseDate");
+				}
+			}
+		}
+		return null;
 	}
 	
 	public String login(String username, String password){
@@ -91,7 +194,7 @@ public class resources {
 		
 		String response = sendPost("/login", null, parameters);
 		if (response == null) {
-			this.showErrorMessage("ERROR", "Can't login with provided account: " + username);
+//			this.showErrorMessage("ERROR", "Can't login with provided account: " + username);
 			return null;
 		}
 		
@@ -124,8 +227,100 @@ public class resources {
 	/*
 		private methods
 	*/
+	private String createNewGroup(String authToken){
+		String parameters = "{\"groupName\":\"" + "Automation Invitation\","
+							+ "\"buyIn\":" + 10 + ","
+							+ "\"groupType\":" + 2 + ","
+							+ "\"gameIds\":[" + 3 + "]}";
+		
+		String result = sendPost("/groups", authToken, parameters);
+		
+		if (result==null)
+			return null;
+		JSONObject obj = new JSONObject(result);
+		return obj.getString("groupId");
 
-	private String checkAuthenticationToken(){
+	}
+	
+	private boolean inviteMemberToGroup(String invitee, String authToken, String groupId, String message){
+		String parameters = "[{\"contact\":{\"emailAddresses\":[{" 
+							+ "\"label\":\"direct\","
+							+ "\"selected\":true," 
+							+ "\"value\":\"" + invitee + "\"}]," 
+							+ "\"firstName\":\"First Name\"," 
+							+ "\"lastName\":\"Last Name\"," 
+							+ "\"name\":\"First Name Last Name\"}," 
+							+ "\"groupId\":\"" + groupId + "\"," 
+							+ "\"message\":\"" + message + "\"," 
+							+ "\"referenceId\":\"90C6822B-6AA6-485E-66BB-01386A37762F\"}]";
+
+		String result = sendPost("/groups/" + groupId +"/members", authToken, parameters);
+		
+		if (result==null)
+			return false;
+		return true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	private String getGiftTicketJson(String drawID, String ticket, String receiver, String message){
+		return "{\"numberType\":\"QUICKPICK\","
+				+ "\"drawId\":\"" + drawID + "\"," 
+				+ "\"numbers\":\"" + ticket + "\","
+				+ "\"gift\": {"
+				+ "\"referenceId\": \"9091264803731234498\","
+				+ "\"recipientContact\": {"
+				+ "\"firstName\": \"First Name\"," 
+				+ "\"lastName\": \"Last Name\"," 
+				+ "\"emailAddresses\": [" 
+				+ "{\"label\": \"direct\","
+				+ "\"value\": \""+ receiver +"\"," 
+				+ "\"selected\": \"true\"}],"
+				+ "\"name\": \"First Name Last Name\"},"
+				+ "\"recipientMessage\": \"" + message + "\"}}";
+	}
+	
+	
+	private String randomTicket(){
+		
+		Random random = new Random();
+		int number = random.nextInt(24) + 1;
+		String aTicket = "" + number;
+
+		
+		//random number for normal balls
+		for (int j=0; j<5;j++){
+			while (aTicket.matches(""+number)) {
+				number = random.nextInt(24) + 1;
+			}
+			aTicket = " " + number;
+		}
+
+		
+		//random number for special balls
+		while (number == 6) {
+			number = random.nextInt(9) + 1;
+		}
+		aTicket = " " + number;
+		
+		
+		return aTicket;
+	}
+	
+	private ArrayList<String> randomTickets(Integer numberOfTickets){
+		ArrayList<String> tickets = new ArrayList();
+		for (int i=0; i<numberOfTickets; i++){
+			tickets.add(randomTicket());
+		}
+		return tickets;
+	}
+	
+	public String checkAuthenticationToken(){
 		String authToken = null;
 		
 		if (environment.equals(STAGING) && Variable.authentication_token_staging == null){
@@ -179,6 +374,8 @@ public class resources {
         	con.setRequestProperty("Authorization", authToken);
 	        int responseCode = con.getResponseCode();
 	        System.out.println("GET Response Code: " + responseCode);
+	        System.out.println("GET Response Message: " + con.getResponseMessage());
+
 	        if (responseCode == HttpURLConnection.HTTP_OK) { // success
 	            BufferedReader in = new BufferedReader(new InputStreamReader(
 	                    con.getInputStream()));
@@ -237,9 +434,10 @@ public class resources {
 	 
 	        int responseCode = con.getResponseCode();
 	        System.out.println("POST Response Code: " + responseCode);
-	        
+	        System.out.println("POST Response Message: " + con.getResponseMessage());
+	        System.out.println("Post Body: " + parameters);
 
-	        if (responseCode == HttpURLConnection.HTTP_OK) { //success
+	        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_ACCEPTED || responseCode == HttpURLConnection.HTTP_CREATED) { //success
 	            BufferedReader in = new BufferedReader(new InputStreamReader(
 	                    con.getInputStream()));
 	            String inputLine;
@@ -268,7 +466,13 @@ public class resources {
     }
 	
 	
-	
+	public Boolean checkVaribles(){
+		System.out.println("loop check variable");
+		if (Variable.authentication_token_staging == null || Variable.authentication_token_demo ==null)
+			return false;
+		return true;
+		
+	}
 	
 	
 	
