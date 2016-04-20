@@ -138,7 +138,7 @@ public class MidoDebugTool extends JFrame{
 		
 		JLabel lblclosedraw = new JLabel("");
 		lblclosedraw.setHorizontalAlignment(SwingConstants.CENTER);
-		lblclosedraw.setBounds(7, 155, 491, 28);
+		lblclosedraw.setBounds(7, 155, 491, 39);
 		panel.add(lblclosedraw);
 		
 		txtReceiver = new JTextField();
@@ -344,18 +344,39 @@ public class MidoDebugTool extends JFrame{
 					temp.environment = temp.DEMO;
 				
 				Boolean result = temp.closeMidoDraw(txtWinningNumbers.getText().trim());
+				
+				String midoDrawStatus = temp.getCurrentDrawStatus();
+				
+				
 				DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 				Date date = new Date();
 				String currentTime = dateFormat.format(date);
 						
 				if (result == true){
-					lblclosedraw.setText(currentTime+" OK");
-					lblclosedraw.setOpaque(true);
-					lblclosedraw.setForeground(Color.blue);
+					if (midoDrawStatus == null){
+						lblclosedraw.setText("<html>Can't get Mido Millions draw status at the moment.<br>" 
+											+ "Mido Millions draw has been closed or completed successfully.</html>");
+						lblclosedraw.setOpaque(true);
+						lblclosedraw.setForeground(Color.blue);
+					}
+					else if (midoDrawStatus.contains("CURRENT_DRAW")){
+						lblclosedraw.setText("<html>Mido Millions draw has just been COMPLETED.<br>" 
+											+ "Current draw status is ACTIVE - CURRENT_DRAW.</html>");
+						lblclosedraw.setOpaque(true);
+						lblclosedraw.setForeground(Color.blue);
+					} else{
+						lblclosedraw.setText("<html>Mido Millions draw has just been CLOSED.<br>" 
+								+ "Current draw status is CURRENT_PENDING_DRAW.</html>");
+						lblclosedraw.setOpaque(true);
+						lblclosedraw.setForeground(Color.blue);
+					}
 				}else{
-					lblclosedraw.setText(currentTime+" FAILED");
-					lblclosedraw.setOpaque(true);
-					lblclosedraw.setForeground(Color.red);
+					if (midoDrawStatus == null){
+						lblclosedraw.setText("<html>Can't close Mido Millions draw status at the moment.<br>"
+											+ "Request was completed at: " + currentTime + "</html>");
+						lblclosedraw.setOpaque(true);
+						lblclosedraw.setForeground(Color.red);
+					}
 				}
 			}
 		});
