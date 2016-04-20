@@ -345,7 +345,6 @@ public class MidoDebugTool extends JFrame{
 				
 				Boolean result = temp.closeMidoDraw(txtWinningNumbers.getText().trim());
 				
-				String midoDrawStatus = temp.getCurrentDrawStatus();
 				
 				
 				DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -353,6 +352,8 @@ public class MidoDebugTool extends JFrame{
 				String currentTime = dateFormat.format(date);
 						
 				if (result == true){
+					String midoDrawStatus = temp.getCurrentDrawStatus();
+
 					if (midoDrawStatus == null){
 						lblclosedraw.setText("<html>Can't get Mido Millions draw status at the moment.<br>" 
 											+ "Mido Millions draw has been closed or completed successfully.</html>");
@@ -371,12 +372,10 @@ public class MidoDebugTool extends JFrame{
 						lblclosedraw.setForeground(Color.blue);
 					}
 				}else{
-					if (midoDrawStatus == null){
-						lblclosedraw.setText("<html>Can't close Mido Millions draw status at the moment.<br>"
-											+ "Request was completed at: " + currentTime + "</html>");
-						lblclosedraw.setOpaque(true);
-						lblclosedraw.setForeground(Color.red);
-					}
+					lblclosedraw.setText("<html>Can't close Mido Millions draw status at the moment.<br>"
+							+ "Request was completed at: " + currentTime + "</html>");
+					lblclosedraw.setOpaque(true);
+					lblclosedraw.setForeground(Color.red);
 				}
 			}
 		});
