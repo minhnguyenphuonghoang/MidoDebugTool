@@ -176,7 +176,7 @@ public class resources {
 					return "GameID: " + obj.getInt("gameId")
 					+ "\nDrawID: " + obj.getString("drawId")
 					+ "\nState: " + obj.getString("state")
-					+ "\nGameDrawID: " + obj.getString("drawDate")
+					+ "\nGameDrawID: " + obj.getLong("gameDrawId")
 					+ "\nDrawDate: " + obj.getString("drawDate")
 					+ "\nExpectedCloseDate: " + obj.getString("expectedCloseDate");
 				}
@@ -287,28 +287,32 @@ public class resources {
 	
 	
 	private String randomTicket(){
-		
-		Random random = new Random();
-		int number = random.nextInt(24) + 1;
-		String aTicket = "" + number;
+		String aTicket = "";
 
-		
+		ArrayList<Integer> result = new ArrayList<>();
+        Random rand = new Random();
+        int randomNum = 0;
+        
 		//random number for normal balls
-		for (int j=0; j<5;j++){
-			while (aTicket.matches(""+number)) {
-				number = random.nextInt(24) + 1;
-			}
-			aTicket = " " + number;
-		}
-
+        while (result.size() < 5) {
+            randomNum = rand.nextInt(24) + 1;
+            if (!result.contains((Integer) randomNum)) {
+                result.add(randomNum);
+            }
+        }
 		
 		//random number for special balls
-		while (number == 6) {
-			number = random.nextInt(9) + 1;
+        while (randomNum == 6) {
+        	randomNum = rand.nextInt(10) + 1;
 		}
-		aTicket = " " + number;
 		
-		
+		aTicket = result.get(0) + " " 
+				+ result.get(1) + " "
+				+ result.get(2) + " "
+				+ result.get(3) + " "
+				+ result.get(4) + " "
+				+ randomNum;
+		System.out.println(aTicket);
 		return aTicket;
 	}
 	

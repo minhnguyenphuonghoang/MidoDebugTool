@@ -167,7 +167,7 @@ public class MidoDebugTool extends JFrame{
 		
 		JLabel lblGiftStatus = new JLabel("");
 		lblGiftStatus.setHorizontalAlignment(SwingConstants.LEFT);
-		lblGiftStatus.setBounds(364, 395, 117, 35);
+		lblGiftStatus.setBounds(353, 395, 154, 35);
 		panel.add(lblGiftStatus);
 		
 		JLabel lblNumberOfTickets = new JLabel("Number of tickets");
@@ -262,7 +262,7 @@ public class MidoDebugTool extends JFrame{
 					lblGiftStatus.setOpaque(true);
 					lblGiftStatus.setForeground(Color.red);
 				}else{
-					lblGiftStatus.setText("Sent.");
+					lblGiftStatus.setText("Group Invitation Sent");
 					lblGiftStatus.setOpaque(true);
 					lblGiftStatus.setForeground(Color.blue);
 				}
@@ -302,7 +302,7 @@ public class MidoDebugTool extends JFrame{
 					lblGiftStatus.setOpaque(true);
 					lblGiftStatus.setForeground(Color.red);
 				}else{
-					lblGiftStatus.setText("Sent.");
+					lblGiftStatus.setText("Gift Invitation Sent");
 					lblGiftStatus.setOpaque(true);
 					lblGiftStatus.setForeground(Color.blue);
 				}
